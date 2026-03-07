@@ -60,14 +60,18 @@ const Home = () => {
   return (
     <Box sx={{ minHeight: "100vh" }}>
       {/* Hero Section */}
-      <Box sx={{ py: 10, bgcolor: "white" }}>
+      <Box sx={{ py: { xs: 6, sm: 8, md: 10 }, bgcolor: "white" }}>
         <Container>
           <AnimatedSection>
             <Typography
               variant="h2"
               align="center"
               gutterBottom
-              sx={{ fontWeight: 700 }}
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: "1.9rem", sm: "2.8rem", md: "3.75rem" },
+                lineHeight: { xs: 1.2, md: 1.3 },
+              }}
             >
               {t("welcomeTitle")}
             </Typography>
@@ -75,12 +79,22 @@ const Home = () => {
               variant="h5"
               align="center"
               color="text.secondary"
-              sx={{ mb: 4 }}
+              sx={{
+                mb: 4,
+                fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
+                px: { xs: 1, sm: 0 },
+              }}
             >
               {t("welcomeSubtitle")}
             </Typography>
             <Box
-              sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 4 }}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                gap: 2,
+                mt: 4,
+              }}
             >
               <Button
                 component={RouterLink}
@@ -88,7 +102,7 @@ const Home = () => {
                 variant="contained"
                 color="primary"
                 size="large"
-                sx={{ px: 4, py: 1.5 }}
+                sx={{ px: 4, py: 1.5, minWidth: 160 }}
               >
                 {t("getStarted")}
               </Button>
@@ -98,7 +112,7 @@ const Home = () => {
                 variant="outlined"
                 color="primary"
                 size="large"
-                sx={{ px: 4, py: 1.5 }}
+                sx={{ px: 4, py: 1.5, minWidth: 160 }}
               >
                 {t("learnMore")}
               </Button>

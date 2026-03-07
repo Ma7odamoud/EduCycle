@@ -73,8 +73,11 @@ const Navbar = () => {
   }
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
+    <Box sx={{ textAlign: "center" }}>
+      <Box
+        onClick={handleDrawerToggle}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
+      >
         <RecyclingIcon sx={{ mr: 1, color: "primary.main", fontSize: "1.8rem" }} />
         <Typography
           variant="h6"
@@ -98,6 +101,7 @@ const Navbar = () => {
             <ListItemButton
               component={RouterLink}
               to={item.path}
+              onClick={handleDrawerToggle}
               sx={{
                 textAlign: "center",
                 bgcolor: isActive(item.path) ? "primary.light" : "transparent",
@@ -111,7 +115,12 @@ const Navbar = () => {
         ))}
         <Divider sx={{ my: 1 }} />
         <ListItem disablePadding>
-          <ListItemButton component={RouterLink} to="/login" sx={{ textAlign: "center", fontSize: "1rem" }}>
+          <ListItemButton
+            component={RouterLink}
+            to="/login"
+            onClick={handleDrawerToggle}
+            sx={{ textAlign: "center", fontSize: "1rem" }}
+          >
             <ListItemText primary={t("login")} />
           </ListItemButton>
         </ListItem>
@@ -119,9 +128,23 @@ const Navbar = () => {
           <ListItemButton
             component={RouterLink}
             to="/signup"
+            onClick={handleDrawerToggle}
             sx={{ textAlign: "center", bgcolor: "primary.main", color: "white", my: 1, mx: 2, fontSize: "1rem" }}
           >
             <ListItemText primary={t("signup")} />
+          </ListItemButton>
+        </ListItem>
+        <Divider sx={{ my: 1 }} />
+        {/* Language toggle in mobile drawer */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={toggleLanguage}
+            sx={{ textAlign: "center", fontSize: "1rem", justifyContent: "center" }}
+          >
+            <ListItemText
+              primary={language === "en" ? "🌐 العربية" : "🌐 English"}
+              sx={{ color: "primary.main", fontWeight: 600 }}
+            />
           </ListItemButton>
         </ListItem>
       </List>
@@ -134,7 +157,7 @@ const Navbar = () => {
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ height: 70 }}>
             {/* Logo */}
-            <Box sx={{ display: "flex", alignItems: "center", mr: { xs: 1, md: 4 } }}>
+            <Box sx={{ display: "flex", alignItems: "center", mr: { xs: 1, md: 4 }, flexGrow: { xs: 1, md: 0 } }}>
               <RecyclingIcon sx={{ mr: 1, color: "primary.main", fontSize: { xs: "1.8rem", md: "2rem" } }} />
               <Typography
                 variant="h6"
@@ -159,9 +182,9 @@ const Navbar = () => {
             <IconButton
               color="inherit"
               aria-label="open drawer"
-              edge="start"
+              edge="end"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: "none" } }}
+              sx={{ display: { md: "none" } }}
             >
               <MenuIcon />
             </IconButton>
