@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance with base URL for the backend
 export const api = axios.create({
-  baseURL: 'http://localhost:3001/api', // Pointing to the Next.js API
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
   withCredentials: true, // Crucial for NextAuth session cookies to be sent cross-origin
 });
 
