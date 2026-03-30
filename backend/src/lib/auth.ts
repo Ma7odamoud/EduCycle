@@ -101,37 +101,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        // 'none' is required so the cookie is sent cross-site through Vercel's
-        // rewrite proxy (frontend: educycle-five.vercel.app → backend: educycle-backend.vercel.app).
-        // 'none' must be paired with secure:true per browser spec.
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    csrfToken: {
-      name: "next-auth.csrf-token",
-      options: {
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // Do NOT override cookies — let NextAuth use its defaults.
+  // In production (NEXTAUTH_URL starts with https://), NextAuth automatically
+  // uses '__Secure-next-auth.session-token', which is also what getToken() looks
+  // for. A custom name here would create a mismatch and break requireAuth().
 
   pages: {
     signIn: process.env.FRONTEND_URL
