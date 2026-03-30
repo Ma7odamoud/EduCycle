@@ -92,8 +92,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Allow redirecting back to our Vite frontend
+      const frontendUrl = process.env.FRONTEND_URL;
+      // Allow redirecting back to our Vite frontend (local or production)
       if (url.startsWith("http://localhost:5173")) return url;
+      if (frontendUrl && url.startsWith(frontendUrl)) return url;
       if (url.startsWith("/")) return new URL(url, baseUrl).toString();
       return baseUrl;
     },
@@ -104,7 +106,10 @@ export const authOptions: NextAuthOptions = {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax",
+        // 'none' is required so the cookie is sent cross-site through Vercel's
+        // rewrite proxy (frontend: educycle-five.vercel.app → backend: educycle-backend.vercel.app).
+        // 'none' must be paired with secure:true per browser spec.
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
       },
@@ -112,16 +117,16 @@ export const authOptions: NextAuthOptions = {
     callbackUrl: {
       name: `next-auth.callback-url`,
       options: {
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
       },
     },
     csrfToken: {
       name: "next-auth.csrf-token",
       options: {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
       },
@@ -129,7 +134,9 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "http://localhost:5173/login",
+    signIn: process.env.FRONTEND_URL
+      ? `${process.env.FRONTEND_URL}/login`
+      : "http://localhost:5173/login",
   },
 
   debug: false,
