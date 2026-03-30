@@ -1,0 +1,159 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum ProductCategory {
+  BOOK
+  TOOL
+  ELECTRONICS
+  CLOTHING
+  FURNITURE
+  OTHER
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  hashedPassword String?
+  name           String
+  phoneNumber    String?
+  bio            String?
+  avatar         String?
+  role           Role      @default(BUYER)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  products          Product[]
+  posts             Post[]
+  comments          Comment[]
+  likes             Like[]
+  sentRequests      Friendship[] @relation("SentRequests")
+  receivedRequests  Friendship[] @relation("ReceivedRequests")
+
+  @@index([email])
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  isFree      Boolean         @default(false)
+  category    ProductCategory @default(BOOK)
+  images      String[]        // Array of uploaded image URLs
+  phoneNumber String          // Seller WhatsApp number (copied from user at listing time)
+
+  // Foreign key
+  sellerId    String
+  seller      User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([sellerId])
+  @@index([category])
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  content     String
+  mediaUrl    String?   // Optional image/video URL
+
+  // Counters — denormalized for fast reads
+  likeCount   Int       @default(0)
+  shareCount  Int       @default(0)
+
+  // Foreign key
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Relations
+  comments    Comment[]
+  likes       Like[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+
+  // Foreign keys
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Self-relation for threaded/nested comments
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+}
+
+model Like {
+  // Composite primary key — prevents a user from liking the same post twice
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId    String
+  post      Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  requester   User             @relation("SentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User             @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  status      FriendshipStatus @default(PENDING)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Prevent duplicate friendship pairs
+  @@unique([requesterId, receiverId])
+  @@index([requesterId])
+  @@index([receiverId])
+}

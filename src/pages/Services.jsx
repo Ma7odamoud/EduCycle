@@ -79,7 +79,7 @@ const Services = () => {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Hero Section */}
-      <Box sx={{ bgcolor: "primary.main", color: "white", py: 8 }}>
+      <Box sx={{ bgcolor: "primary.main", color: "white", py: { xs: 5, md: 8 } }}>
         <Container>
           <AnimatedSection>
             <Typography
@@ -87,14 +87,14 @@ const Services = () => {
               component="h1"
               align="center"
               gutterBottom
-              sx={{ fontWeight: 700 }}
+              sx={{ fontWeight: 700, fontSize: { xs: "1.8rem", md: "3rem" } }}
             >
               {t("ourServices")}
             </Typography>
             <Typography
               variant="h6"
               align="center"
-              sx={{ maxWidth: 800, mx: "auto" }}
+              sx={{ maxWidth: 800, mx: "auto", fontSize: { xs: "0.95rem", md: "1.25rem" }, px: { xs: 2, md: 0 } }}
             >
               {t("servicesSubtitle")}
             </Typography>
@@ -169,36 +169,36 @@ const Services = () => {
       </Container>
 
       {/* Call to Action */}
-      <Box sx={{ bgcolor: "grey.100", py: 8 }}>
+      <Box sx={{ bgcolor: "grey.100", py: { xs: 5, md: 8 } }}>
         <Container>
           <AnimatedSection delay={0.4}>
             <Box
               sx={{
                 bgcolor: "white",
-                p: 4,
+                p: { xs: 3, md: 4 },
                 borderRadius: 2,
                 textAlign: "center",
                 boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
               }}
             >
-              <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, fontSize: { xs: "1.4rem", md: "2.125rem" } }}>
                 {t("readyToJoin")}
               </Typography>
               <Typography
                 variant="body1"
                 paragraph
-                sx={{ maxWidth: 800, mx: "auto", mb: 4 }}
+                sx={{ maxWidth: 800, mx: "auto", mb: 4, fontSize: { xs: "0.875rem", md: "1rem" } }}
               >
                 {t("joinDesc")}
               </Typography>
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 2 }}>
                 <Button
                   variant="contained"
                   color="primary"
                   size="large"
                   component={RouterLink}
                   to="/signup"
-                  sx={{ px: 4, py: 1.5 }}
+                  sx={{ px: 4, py: 1.5, minWidth: 140 }}
                 >
                   {t("signUpNow")}
                 </Button>
@@ -208,7 +208,7 @@ const Services = () => {
                   size="large"
                   component={RouterLink}
                   to="/contact"
-                  sx={{ px: 4, py: 1.5 }}
+                  sx={{ px: 4, py: 1.5, minWidth: 140 }}
                 >
                   {t("contactUs")}
                 </Button>

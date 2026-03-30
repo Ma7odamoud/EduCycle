@@ -96,8 +96,8 @@ const Contact = () => {
         sx={{
           bgcolor: "primary.main",
           color: "white",
-          py: 8,
-          mb: 6,
+          py: { xs: 5, md: 8 },
+          mb: { xs: 3, md: 6 },
           textAlign: "center",
         }}
       >
@@ -108,11 +108,11 @@ const Contact = () => {
               component="h1"
               align="center"
               gutterBottom
-              sx={{ fontWeight: 700 }}
+              sx={{ fontWeight: 700, fontSize: { xs: "1.8rem", md: "3rem" } }}
             >
               {t("contactTitle")}
             </Typography>
-            <Typography variant="h6" align="center" sx={{ opacity: 0.9 }}>
+            <Typography variant="h6" align="center" sx={{ opacity: 0.9, fontSize: { xs: "0.95rem", md: "1.25rem" }, px: { xs: 2, md: 0 } }}>
               {t("contactSubtitle")}
             </Typography>
           </AnimatedSection>
@@ -272,7 +272,7 @@ const Contact = () => {
       </Container>
 
       {/* Map Section */}
-      <Box sx={{ height: 400, width: "100%", bgcolor: "grey.200", mb: 4 }}>
+      <Box sx={{ height: { xs: 220, md: 400 }, width: "100%", bgcolor: "grey.200", mb: 4 }}>
         {/* Replace with actual map component */}
         <Box
           sx={{

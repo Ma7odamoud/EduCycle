@@ -16,11 +16,15 @@ const ImageLazyLoader = () => {
       img.setAttribute("loading", "lazy")
 
       // Optional: Add a fade-in effect when images load
-      img.style.opacity = "0"
-      img.style.transition = "opacity 0.3s ease"
-
-      img.onload = () => {
+      if (img.complete) {
         img.style.opacity = "1"
+      } else {
+        img.style.opacity = "0"
+        img.style.transition = "opacity 0.3s ease"
+
+        img.onload = () => {
+          img.style.opacity = "1"
+        }
       }
     })
 

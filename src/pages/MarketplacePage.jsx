@@ -26,6 +26,7 @@ import SearchIcon from "@mui/icons-material/Search"
 import AddIcon from "@mui/icons-material/Add"
 import { useLanguage } from "../contexts/LanguageContext"
 import AnimatedSection from "../components/AnimatedSection"
+import { api } from "../lib/api"
 
 // Updated static items with codes instead of hardcoded strings
 const staticItems = [
@@ -166,24 +167,34 @@ const MarketplacePage = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const savedItems = JSON.parse(localStorage.getItem("marketplace_items") || "[]")
+    const fetchProducts = async () => {
+      try {
+        // Fetch from API instead of localStorage
+        const { data } = await api.get('/products');
+        
+        const formattedUserItems = data.data.map(item => ({
+          id: item.id,
+          name: item.title,
+          description: item.description,
+          price: item.isFree ? "Free" : `${item.price}`,
+          imageUrl: item.images[0] || "/placeholder.svg",
+          rating: 5.0, // Default rating for new items
+          category: item.category.toLowerCase(),
+          type: item.category.toLowerCase() === 'book' ? 'book' : 'item',
+          department: "tech", // Defaulting filter values since backend doesn't store them strictly
+          grade: "grade1",
+          semester: "sem1",
+          isUserItem: true
+        }));
 
-    const formattedUserItems = savedItems.map(item => ({
-      id: item.id,
-      name: item.title,
-      description: item.description,
-      price: item.isFree ? "Free" : `${item.price}`,
-      imageUrl: item.images[0]?.preview || "/placeholder.svg",
-      rating: 5.0,
-      category: item.type,
-      type: item.type,
-      department: item.department, // Assuming saved items might need migration or just display as is if string
-      grade: item.grade,
-      semester: item.semester,
-      isUserItem: true
-    }))
+        setAllItems([...formattedUserItems, ...staticItems]);
+      } catch (error) {
+        console.error("Failed to load marketplace items:", error);
+        setAllItems(staticItems); // Fallback to static items
+      }
+    };
 
-    setAllItems([...formattedUserItems, ...staticItems])
+    fetchProducts();
   }, [])
 
   // Helper to get translated labels
@@ -378,7 +389,7 @@ const MarketplacePage = () => {
                       <Typography gutterBottom variant="h6" component="div">
                         {item.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, whiteSpace: "pre-line", overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
                         {item.description}
                       </Typography>
 

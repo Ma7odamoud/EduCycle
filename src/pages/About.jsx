@@ -47,7 +47,7 @@ const About = () => {
               variant="h5"
               align="center"
               color="text.secondary"
-              sx={{ fontWeight: 500, lineHeight: 1.6, opacity: 0.9 }}
+              sx={{ fontWeight: 500, lineHeight: 1.6, opacity: 0.9, fontSize: { xs: "1rem", md: "1.5rem" }, px: { xs: 2, md: 0 } }}
             >
               {t("aboutSubtitle")}
             </Typography>
@@ -68,7 +68,7 @@ const About = () => {
                 <Typography variant="overline" color="primary" sx={{ fontWeight: 700, letterSpacing: 2, display: 'block', mb: 1 }}>
                   HOW IT ALL STARTED
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 800, mb: 4, color: "text.primary" }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, mb: 4, color: "text.primary", fontSize: { xs: "1.6rem", md: "3rem" } }}>
                   {t("ourStory")}
                 </Typography>
                 <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: 'text.secondary', lineHeight: 1.8 }}>
@@ -135,7 +135,7 @@ const About = () => {
             <Typography variant="overline" color="primary" sx={{ fontWeight: 700, letterSpacing: 2 }}>
               {t("ourMission")}
             </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 3, color: "text.primary" }}>
+            <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 3, color: "text.primary", fontSize: { xs: "1.6rem", md: "3rem" } }}>
               {t("missionTitle")}
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 800, mx: "auto", fontWeight: 400, mb: 6, lineHeight: 1.6 }}>

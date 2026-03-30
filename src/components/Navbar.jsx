@@ -18,12 +18,14 @@ import {
   useScrollTrigger,
   Menu,
   MenuItem,
+  Avatar,
 } from "@mui/material"
 import { Link as RouterLink, useLocation } from "react-router-dom"
 import RecyclingIcon from "@mui/icons-material/Recycling"
 import MenuIcon from "@mui/icons-material/Menu"
 import PersonIcon from "@mui/icons-material/Person"
 import { useLanguage } from "../contexts/LanguageContext"
+import { useAuth } from "../contexts/AuthContext"
 
 function ElevationScroll(props) {
   const { children } = props
@@ -55,6 +57,7 @@ const Navbar = () => {
     { name: t("community"), path: "/community" },
     { name: t("contact"), path: "/contact" },
   ]
+  const { user, logout } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
@@ -66,6 +69,11 @@ const Navbar = () => {
 
   const handleUserMenuClose = () => {
     setUserMenuAnchor(null)
+  }
+
+  const handleLogout = async () => {
+    handleUserMenuClose();
+    await logout();
   }
 
   const isActive = (path) => {
@@ -114,26 +122,51 @@ const Navbar = () => {
           </ListItem>
         ))}
         <Divider sx={{ my: 1 }} />
-        <ListItem disablePadding>
-          <ListItemButton
-            component={RouterLink}
-            to="/login"
-            onClick={handleDrawerToggle}
-            sx={{ textAlign: "center", fontSize: "1rem" }}
-          >
-            <ListItemText primary={t("login")} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            component={RouterLink}
-            to="/signup"
-            onClick={handleDrawerToggle}
-            sx={{ textAlign: "center", bgcolor: "primary.main", color: "white", my: 1, mx: 2, fontSize: "1rem" }}
-          >
-            <ListItemText primary={t("signup")} />
-          </ListItemButton>
-        </ListItem>
+        {!user ? (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/login"
+                onClick={handleDrawerToggle}
+                sx={{ textAlign: "center", fontSize: "1rem" }}
+              >
+                <ListItemText primary={t("login")} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/signup"
+                onClick={handleDrawerToggle}
+                sx={{ textAlign: "center", bgcolor: "primary.main", color: "white", my: 1, mx: 2, fontSize: "1rem" }}
+              >
+                <ListItemText primary={t("signup")} />
+              </ListItemButton>
+            </ListItem>
+          </>
+        ) : (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/profile"
+                onClick={handleDrawerToggle}
+                sx={{ textAlign: "center", fontSize: "1rem" }}
+              >
+                <ListItemText primary={t("profile")} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => { handleDrawerToggle(); handleLogout(); }}
+                sx={{ textAlign: "center", fontSize: "1rem", color: "error.main" }}
+              >
+                <ListItemText primary={t("logout") || "Logout"} />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
         <Divider sx={{ my: 1 }} />
         {/* Language toggle in mobile drawer */}
         <ListItem disablePadding>
@@ -242,86 +275,96 @@ const Navbar = () => {
                 {language === "en" ? "AR" : "EN"}
               </Button>
 
-              <Button
-                component={RouterLink}
-                to="/login"
-                variant="outlined"
-                color="primary"
-                sx={{
-                  fontWeight: 600,
-                  mr: 1.5,
-                  px: 2.5,
-                  py: 0.8,
-                  fontSize: "0.95rem",
-                  borderWidth: 2,
-                  "&:hover": {
-                    borderWidth: 2,
-                    backgroundColor: "rgba(65, 171, 93, 0.04)",
-                  },
-                }}
-              >
-                {t("login")}
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/signup"
-                variant="contained"
-                color="primary"
-                sx={{
-                  fontWeight: 600,
-                  px: 2.5,
-                  py: 0.8,
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 10px rgba(65, 171, 93, 0.3)",
-                  "&:hover": {
-                    boxShadow: "0 6px 12px rgba(65, 171, 93, 0.4)",
-                    backgroundColor: "#3a9a54",
-                  },
-                }}
-              >
-                {t("signup")}
-              </Button>
-              <IconButton
-                aria-label="user account"
-                aria-controls="user-menu"
-                aria-haspopup="true"
-                onClick={handleUserMenuOpen}
-                color="primary"
-                sx={{
-                  ml: 1.5,
-                  border: "1px solid",
-                  borderColor: "primary.main",
-                  "&:hover": {
-                    backgroundColor: "rgba(65, 171, 93, 0.04)",
-                  },
-                }}
-              >
-                <PersonIcon />
-              </IconButton>
-              <Menu
-                id="user-menu"
-                anchorEl={userMenuAnchor}
-                keepMounted
-                open={Boolean(userMenuAnchor)}
-                onClose={handleUserMenuClose}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-              >
-                <MenuItem component={RouterLink} to="/profile" onClick={handleUserMenuClose} sx={{ minWidth: 150 }}>
-                  {t("profile")}
-                </MenuItem>
-                <MenuItem component={RouterLink} to="/admin" onClick={handleUserMenuClose}>
-                  {t("adminDashboard")}
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleUserMenuClose}>{t("logout")}</MenuItem>
-              </Menu>
+              {!user ? (
+                <>
+                  <Button
+                    component={RouterLink}
+                    to="/login"
+                    variant="outlined"
+                    color="primary"
+                    sx={{
+                      fontWeight: 600,
+                      mr: 1.5,
+                      px: 2.5,
+                      py: 0.8,
+                      fontSize: "0.95rem",
+                      borderWidth: 2,
+                      "&:hover": {
+                        borderWidth: 2,
+                        backgroundColor: "rgba(65, 171, 93, 0.04)",
+                      },
+                    }}
+                  >
+                    {t("login")}
+                  </Button>
+                  <Button
+                    component={RouterLink}
+                    to="/signup"
+                    variant="contained"
+                    color="primary"
+                    sx={{
+                      fontWeight: 600,
+                      px: 2.5,
+                      py: 0.8,
+                      fontSize: "0.95rem",
+                      boxShadow: "0 4px 10px rgba(65, 171, 93, 0.3)",
+                      "&:hover": {
+                        boxShadow: "0 6px 12px rgba(65, 171, 93, 0.4)",
+                        backgroundColor: "#3a9a54",
+                      },
+                    }}
+                  >
+                    {t("signup")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Typography variant="body2" sx={{ mr: 2, fontWeight: 600, color: "text.primary" }}>
+                    Hi, {user.name?.split(' ')[0]}
+                  </Typography>
+                  <IconButton
+                    aria-label="user account"
+                    aria-controls="user-menu"
+                    aria-haspopup="true"
+                    onClick={handleUserMenuOpen}
+                    sx={{
+                      p: 0,
+                      border: "2px solid",
+                      borderColor: "primary.main",
+                      "&:hover": { opacity: 0.8 },
+                    }}
+                  >
+                    <Avatar 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      sx={{ width: 36, height: 36, bgcolor: "primary.light", color: "primary.dark" }}
+                    >
+                      {!user.avatar && user.name ? user.name.charAt(0) : ""}
+                    </Avatar>
+                  </IconButton>
+                  <Menu
+                    id="user-menu"
+                    anchorEl={userMenuAnchor}
+                    keepMounted
+                    open={Boolean(userMenuAnchor)}
+                    onClose={handleUserMenuClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "right",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                  >
+                    <MenuItem component={RouterLink} to="/profile" onClick={handleUserMenuClose} sx={{ minWidth: 150 }}>
+                      {t("profile")}
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleLogout}>{t("logout") || "Logout"}</MenuItem>
+                  </Menu>
+                </>
+              )}
             </Box>
           </Toolbar>
         </Container>

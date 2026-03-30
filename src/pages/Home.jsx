@@ -10,7 +10,7 @@ import {
   Rating,
   Divider,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import RecyclingIcon from "@mui/icons-material/Recycling";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
@@ -25,9 +25,12 @@ import SectionTitle from "../components/SectionTitle";
 import CategoryCard from "../components/CategoryCard";
 import AnimatedSection from "../components/AnimatedSection";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const Home = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Testimonials data
   const testimonials = [
@@ -97,12 +100,11 @@ const Home = () => {
               }}
             >
               <Button
-                component={RouterLink}
-                to="/signup"
                 variant="contained"
                 color="primary"
                 size="large"
                 sx={{ px: 4, py: 1.5, minWidth: 160 }}
+                onClick={() => navigate(user ? "/marketplace" : "/signup")}
               >
                 {t("getStarted")}
               </Button>
@@ -165,7 +167,7 @@ const Home = () => {
       </Box>
 
       {/* How to Use Section */}
-      <Box sx={{ py: 8, bgcolor: "white", color: "text.primary" }}>
+      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: "white", color: "text.primary" }}>
         <Container>
           <AnimatedSection delay={0.3}>
             <SectionTitle>{t("howToUse")}</SectionTitle>
@@ -175,7 +177,7 @@ const Home = () => {
                   sx={{
                     textAlign: "center",
                     bgcolor: "white",
-                    p: 4,
+                    p: { xs: 3, md: 4 },
                     borderRadius: 2,
                     height: "100%",
                     boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
@@ -185,8 +187,8 @@ const Home = () => {
                 >
                   <Box
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: { xs: 64, md: 80 },
+                      height: { xs: 64, md: 80 },
                       bgcolor: "primary.main",
                       borderRadius: "50%",
                       display: "flex",
@@ -196,12 +198,12 @@ const Home = () => {
                       mb: 3,
                     }}
                   >
-                    <PersonIcon sx={{ fontSize: 40, color: "white" }} />
+                    <PersonIcon sx={{ fontSize: { xs: 30, md: 40 }, color: "white" }} />
                   </Box>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: { xs: "1.1rem", md: "1.5rem" } }}>
                     {t("createAccount")}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}>
                     {t("createAccountDesc")}
                   </Typography>
                 </Box>
@@ -211,7 +213,7 @@ const Home = () => {
                   sx={{
                     textAlign: "center",
                     bgcolor: "white",
-                    p: 4,
+                    p: { xs: 3, md: 4 },
                     borderRadius: 2,
                     height: "100%",
                     boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
@@ -221,8 +223,8 @@ const Home = () => {
                 >
                   <Box
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: { xs: 64, md: 80 },
+                      height: { xs: 64, md: 80 },
                       bgcolor: "primary.main",
                       borderRadius: "50%",
                       display: "flex",
@@ -232,12 +234,12 @@ const Home = () => {
                       mb: 3,
                     }}
                   >
-                    <RecyclingIcon sx={{ fontSize: 40, color: "white" }} />
+                    <RecyclingIcon sx={{ fontSize: { xs: 30, md: 40 }, color: "white" }} />
                   </Box>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: { xs: "1.1rem", md: "1.5rem" } }}>
                     {t("uploadBooks")}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}>
                     {t("uploadBooksDesc")}
                   </Typography>
                 </Box>
@@ -247,7 +249,7 @@ const Home = () => {
                   sx={{
                     textAlign: "center",
                     bgcolor: "white",
-                    p: 4,
+                    p: { xs: 3, md: 4 },
                     borderRadius: 2,
                     height: "100%",
                     boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
@@ -257,8 +259,8 @@ const Home = () => {
                 >
                   <Box
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: { xs: 64, md: 80 },
+                      height: { xs: 64, md: 80 },
                       bgcolor: "primary.main",
                       borderRadius: "50%",
                       display: "flex",
@@ -268,12 +270,12 @@ const Home = () => {
                       mb: 3,
                     }}
                   >
-                    <AutorenewIcon sx={{ fontSize: 40, color: "white" }} />
+                    <AutorenewIcon sx={{ fontSize: { xs: 30, md: 40 }, color: "white" }} />
                   </Box>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, fontSize: { xs: "1.1rem", md: "1.5rem" } }}>
                     {t("buyBooks")}
                   </Typography>
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" sx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}>
                     {t("buyBooksDesc")}
                   </Typography>
                 </Box>
@@ -284,7 +286,7 @@ const Home = () => {
       </Box>
 
       {/* Testimonials Section - "Our Customers Say" */}
-      <Box sx={{ py: 8, bgcolor: "#f8f9fa" }}>
+      <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: "#f8f9fa" }}>
         <Container>
           <AnimatedSection delay={0.4}>
             <SectionTitle>{t("testimonials")}</SectionTitle>
@@ -297,7 +299,7 @@ const Home = () => {
               {t("testimonialsDesc")}
             </Typography>
 
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 2, md: 4 }}>
               {testimonials.map((testimonial) => (
                 <Grid item xs={12} md={4} key={testimonial.id}>
                   <Card

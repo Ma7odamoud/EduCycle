@@ -18,8 +18,8 @@ import PaymentPage from "./pages/PaymentPage"
 import PaymentSuccessPage from "./pages/PaymentSuccessPage"
 import ListItemPage from "./pages/ListItemPage"
 import ProfilePage from "./pages/ProfilePage"
+import UserProfilePage from "./pages/UserProfilePage"
 import RedeemPointsPage from "./pages/RedeemPointsPage" // Import the RedeemPointsPage
-import AdminDashboard from "./pages/AdminDashboard"
 import ScrollToTop from "./components/ScrollToTop" // Import the ScrollToTop component
 import ImageLazyLoader from "./components/ImageLazyLoader" // Import the new component
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext"
@@ -46,6 +46,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<PageTransition><SignupPage /></PageTransition>} />
 
         <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+        <Route path="/user/:userId" element={<PageTransition><UserProfilePage /></PageTransition>} />
         <Route path="/redeem-points" element={<PageTransition><RedeemPointsPage /></PageTransition>} />
         <Route path="/item/:id" element={<PageTransition><ItemDetailsPage /></PageTransition>} />
         <Route path="/payment" element={<PageTransition><PaymentPage /></PageTransition>} />
@@ -143,9 +144,6 @@ const AppContent = () => {
           <ScrollToTop />
           <ImageLazyLoader />
           <Routes>
-            {/* Admin Dashboard Route - No Navbar/Footer */}
-            <Route path="/admin/*" element={<AdminDashboard />} />
-
             {/* Regular Routes with Navbar/Footer */}
             <Route
               path="*"
@@ -166,10 +164,14 @@ const AppContent = () => {
   )
 }
 
+import { AuthProvider } from "./contexts/AuthContext"
+
 function App() {
   return (
     <LanguageProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </LanguageProvider>
   )
 }

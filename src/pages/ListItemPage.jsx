@@ -20,18 +20,23 @@ import {
   IconButton,
   FormControlLabel,
   Checkbox,
+  Alert,
+  CircularProgress,
 } from "@mui/material"
 import CloudUploadIcon from "@mui/icons-material/CloudUpload"
 import DeleteIcon from "@mui/icons-material/Delete"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate"
 import { useLanguage } from "../contexts/LanguageContext"
+import { useAuth } from "../contexts/AuthContext"
+import { api } from "../lib/api"
 
 const departments = ["تكنولوجيا التعليم", "فنية", "اعلام", "موسيقي", "اقتصاد"]
 
 const ListItemPage = () => {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const { user } = useAuth()
 
   const grades = [t("grade1Label"), t("grade2Label"), t("grade3Label"), t("grade4Label")]
   const semesters = [t("sem1Label"), t("sem2Label")]
@@ -53,6 +58,8 @@ const ListItemPage = () => {
   })
 
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target
@@ -91,23 +98,54 @@ const ListItemPage = () => {
     if (!formData.isFree && (!formData.price || formData.price <= 0)) {
       newErrors.price = t("errPrice")
     }
-    if (formData.images.length === 0) newErrors.images = t("errPhotos")
+    if (formData.images.length === 0) newErrors.images = t("errPhotos") || "Please upload at least one photo"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitError(null)
+    if (!user) {
+      setSubmitError("You must be logged in to list an item.")
+      return
+    }
     if (validateForm()) {
-      const newItem = {
-        ...formData,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        displayImage: formData.images[0]?.preview || ""
+      setIsSubmitting(true)
+      try {
+        let uploadedImageUrls = [];
+
+        if (formData.images.length > 0) {
+          const uploadData = new FormData();
+          formData.images.forEach(imgObj => {
+            if (imgObj.file) uploadData.append("files", imgObj.file);
+          });
+          const uploadRes = await api.post("/upload", uploadData, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+          uploadedImageUrls = uploadRes.data.urls;
+        }
+
+        // phoneNumber is automatically pulled from the user's profile on the backend
+        const payload = {
+          title: formData.title,
+          description: `${formData.description}\n\nGrade: ${formData.grade}\nSemester: ${formData.semester}\nDepartment: ${formData.department}`,
+          price: Number(formData.price) || 0,
+          isFree: formData.isFree,
+          category: formData.type === "book" ? "BOOK" : "OTHER",
+          images: uploadedImageUrls.length > 0 ? uploadedImageUrls : ["/images/placeholder.svg"]
+        };
+        await api.post("/products", payload);
+        navigate("/marketplace")
+      } catch (error) {
+        console.error("Failed to create product:", error);
+        const msg = error.response?.data?.error
+          || error.response?.data?.details?.[Object.keys(error.response?.data?.details || {})[0]]?.[0]
+          || "Failed to create listing. Please try again.";
+        setSubmitError(msg);
+      } finally {
+        setIsSubmitting(false)
       }
-      const existingItems = JSON.parse(localStorage.getItem("marketplace_items") || "[]")
-      localStorage.setItem("marketplace_items", JSON.stringify([newItem, ...existingItems]))
-      navigate("/marketplace")
     }
   }
 
@@ -121,6 +159,14 @@ const ListItemPage = () => {
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
           {t("listYourResourceTitle")}
         </Typography>
+
+        {/* Show seller's phone number info */}
+        {user?.phoneNumber && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            {t("contactPhone") || "Buyers will contact you via"}: <strong>{user.phoneNumber}</strong>
+            {" "}— {t("updatePhoneInProfile") || "Update in your profile settings if needed."}
+          </Alert>
+        )}
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={3}>
@@ -240,15 +286,21 @@ const ListItemPage = () => {
 
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
+              {submitError && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSubmitError(null)}>
+                  {submitError}
+                </Alert>
+              )}
               <Button
                 type="submit"
                 variant="contained"
                 fullWidth
                 size="large"
-                startIcon={<AddPhotoAlternateIcon />}
+                disabled={isSubmitting}
+                startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : <AddPhotoAlternateIcon />}
                 sx={{ borderRadius: 2, py: 1.5, fontSize: "1.1rem" }}
               >
-                {t("postNow")}
+                {isSubmitting ? t("posting") || "Posting…" : t("postNow")}
               </Button>
             </Grid>
           </Grid>

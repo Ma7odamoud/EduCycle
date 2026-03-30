@@ -32,6 +32,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart"
 import FavoriteIcon from "@mui/icons-material/Favorite"
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"
 import WhatsAppIcon from "@mui/icons-material/WhatsApp"
+import { api } from "../lib/api"
 
 // --- ORIGINAL FULL DATA ARRAY (600+ LINES STYLE) ---
 const items = [
@@ -47,6 +48,7 @@ const items = [
     reviews: 24,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.8,
@@ -68,6 +70,7 @@ const items = [
     reviews: 12,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.9,
@@ -89,6 +92,7 @@ const items = [
     reviews: 5,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.7,
@@ -110,6 +114,7 @@ const items = [
     reviews: 18,
     category: "book",
     condition: "Fair",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.5,
@@ -131,6 +136,7 @@ const items = [
     reviews: 30,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.9,
@@ -152,6 +158,7 @@ const items = [
     reviews: 42,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 5.0,
@@ -173,6 +180,7 @@ const items = [
     reviews: 14,
     category: "book",
     condition: "Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.6,
@@ -194,6 +202,7 @@ const items = [
     reviews: 35,
     category: "book",
     condition: "Very Good",
+    phoneNumber: "+201027643232",
     seller: {
       name: "Student",
       rating: 4.9,
@@ -214,47 +223,58 @@ const ItemDetailsPage = () => {
   const [tabValue, setTabValue] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
 
-  const whatsappNumber = "+201027643232"
-
   useEffect(() => {
-    // 1. Search in our static hardcoded list
-    const foundItem = items.find((item) => item.id === Number.parseInt(id))
+    const fetchItem = async () => {
+      setLoading(true)
+      try {
+        // 1. Search in our static list first
+        const foundItem = items.find((item) => item.id === Number.parseInt(id))
+        
+        if (foundItem) {
+          setItem(foundItem)
+          setMainImage(foundItem.imageUrl)
+          setLoading(false)
+          return
+        }
 
-    // 2. Search in localStorage for user-posted items
-    const savedItems = JSON.parse(localStorage.getItem("marketplace_items") || "[]")
-    const dynamicItem = savedItems.find((item) => String(item.id) === String(id))
+        // 2. Fetch from backend API
+        const response = await api.get(`/products/${id}`)
+        const dynamicItem = response.data
 
-    if (foundItem) {
-      setItem(foundItem)
-      setMainImage(foundItem.imageUrl)
-    } else if (dynamicItem) {
-      // Map dynamic data to the 600-line structure
-      const formatted = {
-        id: dynamicItem.id,
-        name: dynamicItem.title,
-        description: dynamicItem.description,
-        longDescription: dynamicItem.description,
-        price: dynamicItem.isFree ? 0 : dynamicItem.price,
-        imageUrl: dynamicItem.images[0]?.preview || "/placeholder.svg",
-        additionalImages: dynamicItem.images.map((img) => img.preview),
-        rating: 5.0,
-        reviews: 0,
-        category: dynamicItem.type || "item",
-        condition: "New/Used",
-        seller: {
-          name: "Community Member",
-          rating: 5.0,
-          sales: 1,
-          avatar: "",
-        },
-        features: ["Student Uploaded", `${dynamicItem.department} Dept`],
-        sustainabilityImpact:
-          "By sharing this item within the community, you're reducing waste and supporting a circular economy.",
+        const formatted = {
+          id: dynamicItem.id,
+          name: dynamicItem.title,
+          description: dynamicItem.description,
+          longDescription: dynamicItem.description,
+          price: dynamicItem.isFree ? 0 : dynamicItem.price,
+          imageUrl: dynamicItem.images?.[0] || "/images/placeholder.svg",
+          additionalImages: dynamicItem.images?.length > 0 ? dynamicItem.images : ["/images/placeholder.svg", "/images/placeholder.svg", "/images/placeholder.svg"],
+          rating: 0,
+          reviews: 0,
+          category: dynamicItem.category?.toLowerCase() || "item",
+          condition: "Used",
+          phoneNumber: dynamicItem.phoneNumber || "",
+          seller: {
+            name: dynamicItem.seller?.name || "Member",
+            rating: 0,
+            sales: 0,
+            avatar: dynamicItem.seller?.avatar || "/images/placeholder.svg",
+          },
+          features: ["Community Item"],
+          sustainabilityImpact: "By sharing this item, you reduce waste and support the circular economy.",
+        }
+        
+        setItem(formatted)
+        setMainImage(formatted.imageUrl)
+      } catch (error) {
+        console.error("Failed to load item:", error)
+        setItem(null)
+      } finally {
+        setLoading(false)
       }
-      setItem(formatted)
-      setMainImage(formatted.imageUrl)
     }
-    setLoading(false)
+
+    fetchItem()
   }, [id])
 
   const handleTabChange = (event, newValue) => {
@@ -274,8 +294,9 @@ const ItemDetailsPage = () => {
   }
 
   const handleContactSeller = () => {
-    const message = `Hi, I'm interested in your item "${item.name}" priced at ${item.price} EGP on EduCycle Marketplace.`
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+    if (!item.phoneNumber) return
+    const message = encodeURIComponent("I am interested in your product.")
+    const whatsappUrl = `https://wa.me/${item.phoneNumber}?text=${message}`
     window.open(whatsappUrl, "_blank")
   }
 
@@ -416,7 +437,7 @@ const ItemDetailsPage = () => {
                 {item.price === 0 ? "FREE" : `${item.price} EGP`}
               </Typography>
 
-              <Typography variant="body1" paragraph>
+              <Typography variant="body1" paragraph sx={{ whiteSpace: "pre-line" }}>
                 {item.longDescription}
               </Typography>
 
@@ -458,15 +479,27 @@ const ItemDetailsPage = () => {
                 >
                   Add to Cart
                 </Button>
-                <Button
-                  variant="outlined"
-                  color="success"
-                  size="large"
-                  startIcon={<WhatsAppIcon />}
-                  onClick={handleContactSeller}
-                >
-                  Contact Seller
-                </Button>
+                {item.phoneNumber ? (
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    size="large"
+                    startIcon={<WhatsAppIcon />}
+                    onClick={handleContactSeller}
+                  >
+                    Contact via WhatsApp
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    size="large"
+                    startIcon={<WhatsAppIcon />}
+                    disabled
+                  >
+                    Contact Unavailable
+                  </Button>
+                )}
               </Box>
 
               <Box sx={{ mb: 3 }}>

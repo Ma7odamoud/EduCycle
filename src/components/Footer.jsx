@@ -14,7 +14,7 @@ const Footer = () => {
   const { t } = useLanguage()
 
   return (
-    <Box sx={{ bgcolor: "#41AB5D", color: "white", pt: 6, pb: 3 }}>
+    <Box sx={{ bgcolor: "#41AB5D", color: "white", pt: { xs: 4, md: 6 }, pb: 3 }}>
       <Container maxWidth="lg">
         {/* Company Info */}
         <Grid container spacing={4}>
@@ -95,7 +95,7 @@ const Footer = () => {
             <Typography variant="body2" sx={{ mb: 2 }}>
               {t("newsletterDesc")}
             </Typography>
-            <Box sx={{ display: "flex", mb: 2 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
               <TextField
                 placeholder={t("emailPlaceholder")}
                 variant="outlined"
@@ -103,11 +103,12 @@ const Footer = () => {
                 fullWidth
                 sx={{
                   bgcolor: "white",
-                  borderRadius: "4px 0 0 4px",
+                  borderRadius: { xs: "4px", sm: "4px 0 0 4px" },
+                  flexGrow: 1,
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
                       borderColor: "transparent",
-                      borderRadius: "4px 0 0 4px",
+                      borderRadius: { xs: "4px", sm: "4px 0 0 4px" },
                     },
                     "&:hover fieldset": {
                       borderColor: "transparent",
@@ -123,7 +124,9 @@ const Footer = () => {
                 sx={{
                   bgcolor: "#2d7a42",
                   color: "white",
-                  borderRadius: "0 4px 4px 0",
+                  borderRadius: { xs: "4px", sm: "0 4px 4px 0" },
+                  mt: { xs: 0, sm: 0 },
+                  whiteSpace: "nowrap",
                   "&:hover": { bgcolor: "#236335" },
                 }}
               >
