@@ -11,7 +11,7 @@ import SearchIcon from "@mui/icons-material/Search"
 import FavoriteIcon from "@mui/icons-material/Favorite"
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"
 import CommentIcon from "@mui/icons-material/Comment"
-import ShareIcon from "@mui/icons-material/Share"
+
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import SendIcon from "@mui/icons-material/Send"
 import ImageIcon from "@mui/icons-material/Image"
@@ -97,7 +97,7 @@ const CommunityPage = () => {
       content: c.content,
       date: new Date(c.createdAt).toLocaleDateString()
     })) || [],
-    shares: p.shareCount || 0,
+
     tags: [],
   })
 
@@ -219,7 +219,7 @@ const CommunityPage = () => {
         image: finalMediaUrl,
         likes: 0,
         comments: [],
-        shares: 0,
+
         tags: postTags,
       }
       setPosts([newPost, ...posts])
@@ -585,10 +585,7 @@ const CommunityPage = () => {
                         <IconButton onClick={() => handleCommentToggle(post.id)}><CommentIcon /></IconButton>
                         <Typography variant="body2" component="span" color="text.secondary">{post.comments.length}</Typography>
                       </Box>
-                      <Box>
-                        <IconButton><ShareIcon /></IconButton>
-                        <Typography variant="body2" component="span" color="text.secondary">{post.shares}</Typography>
-                      </Box>
+
                     </Box>
 
                     <Collapse in={expandedComments[post.id]} timeout="auto" unmountOnExit>
