@@ -110,42 +110,68 @@ const ListItemPage = () => {
       setSubmitError("You must be logged in to list an item.")
       return
     }
-    if (validateForm()) {
-      setIsSubmitting(true)
-      try {
-        let uploadedImageUrls = [];
+    if (!validateForm()) return
 
-        if (formData.images.length > 0) {
-          const uploadData = new FormData();
-          formData.images.forEach(imgObj => {
-            if (imgObj.file) uploadData.append("files", imgObj.file);
-          });
-          const uploadRes = await api.post("/upload", uploadData, {
+    setIsSubmitting(true)
+    try {
+      let uploadedImageUrls = [];
+
+      if (formData.images.length > 0) {
+        const uploadData = new FormData();
+        formData.images.forEach(imgObj => {
+          if (imgObj.file) uploadData.append("files", imgObj.file);
+        });
+
+        let uploadRes;
+        try {
+          uploadRes = await api.post("/upload", uploadData, {
             headers: { "Content-Type": "multipart/form-data" }
           });
-          uploadedImageUrls = uploadRes.data.urls;
+        } catch (uploadErr) {
+          // Check if the server returned 401 (not authenticated)
+          if (uploadErr.response?.status === 401) {
+            setSubmitError("Your session has expired. Please log in again.");
+          } else {
+            const uploadErrMsg = uploadErr.response?.data?.error || "Failed to upload images. Please try again.";
+            setSubmitError(uploadErrMsg);
+          }
+          return; // outer finally will call setIsSubmitting(false)
         }
 
-        // phoneNumber is automatically pulled from the user's profile on the backend
-        const payload = {
-          title: formData.title,
-          description: `${formData.description}\n\nGrade: ${formData.grade}\nSemester: ${formData.semester}\nDepartment: ${formData.department}`,
-          price: Number(formData.price) || 0,
-          isFree: formData.isFree,
-          category: formData.type === "book" ? "BOOK" : "OTHER",
-          images: uploadedImageUrls.length > 0 ? uploadedImageUrls : ["/images/placeholder.svg"]
-        };
-        await api.post("/products", payload);
-        navigate("/marketplace")
-      } catch (error) {
-        console.error("Failed to create product:", error);
+        // Validate that we got back real URLs (not an HTML page or empty response)
+        const urls = uploadRes.data?.urls;
+        if (!Array.isArray(urls) || urls.length === 0 || urls.some(u => !u || !u.startsWith('http'))) {
+          setSubmitError("Image upload failed: server returned no valid URLs. Please try again.");
+          return; // outer finally will call setIsSubmitting(false)
+        }
+        uploadedImageUrls = urls;
+      }
+
+      // phoneNumber is automatically pulled from the user's profile on the backend
+      const payload = {
+        title: formData.title,
+        description: `${formData.description}\n\nGrade: ${formData.grade}\nSemester: ${formData.semester}\nDepartment: ${formData.department}`,
+        price: Number(formData.price) || 0,
+        isFree: formData.isFree,
+        category: formData.type === "book" ? "BOOK" : "OTHER",
+        images: uploadedImageUrls,
+      };
+
+      await api.post("/products", payload);
+      navigate("/marketplace")
+    } catch (error) {
+      console.error("Failed to create product:", error);
+      // Check for 401 auth error
+      if (error.response?.status === 401) {
+        setSubmitError("Your session has expired. Please log in again.");
+      } else {
         const msg = error.response?.data?.error
           || error.response?.data?.details?.[Object.keys(error.response?.data?.details || {})[0]]?.[0]
           || "Failed to create listing. Please try again.";
         setSubmitError(msg);
-      } finally {
-        setIsSubmitting(false)
       }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

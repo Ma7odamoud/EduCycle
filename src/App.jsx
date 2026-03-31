@@ -165,14 +165,17 @@ const AppContent = () => {
 }
 
 import { AuthProvider } from "./contexts/AuthContext"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   )
 }
 
