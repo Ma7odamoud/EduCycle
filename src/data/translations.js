@@ -89,6 +89,7 @@ export const translations = {
         typeBook: "Book",
         typeItem: "Item",
         noItemsFound: "No items found in this department.",
+        itemsFound: "items found",
         currency: "EGP",
         free: "Free",
 
@@ -490,6 +491,7 @@ export const translations = {
         typeBook: "كتاب",
         typeItem: "أداة",
         noItemsFound: "لا توجد عناصر في هذا القسم.",
+        itemsFound: "عناصر متاحة",
         currency: "ج.م",
         free: "مجاني",
 

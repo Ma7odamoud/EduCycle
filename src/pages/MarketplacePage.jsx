@@ -9,134 +9,42 @@ import {
   TextField,
   Button,
   Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActionArea,
-  Rating,
-  Tabs,
-  Tab,
   InputAdornment,
   MenuItem,
   FormControl,
   Select,
-  InputLabel,
+  Chip,
+  Pagination,
+  Stack,
+  IconButton,
+  Tooltip,
 } from "@mui/material"
 import SearchIcon from "@mui/icons-material/Search"
 import AddIcon from "@mui/icons-material/Add"
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder"
+import FavoriteIcon from "@mui/icons-material/Favorite"
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined"
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
+import FilterListIcon from "@mui/icons-material/FilterList"
 import { useLanguage } from "../contexts/LanguageContext"
 import AnimatedSection from "../components/AnimatedSection"
 import { api } from "../lib/api"
 
-// Updated static items with codes instead of hardcoded strings
+const ITEMS_PER_PAGE = 8
+
 const staticItems = [
-  {
-    id: 1,
-    name: "كتاب المتاحف و المعارض التعليمية",
-    description: "حالة جيدة.",
-    price: "Free",
-    imageUrl: "/images/mta7f.jpeg",
-    rating: 4.5,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade1",
-    semester: "sem1",
-  },
-  {
-    id: 2,
-    name: "محاضرات في التعليم الإلكتروني",
-    description: "حالة جيدة.",
-    price: "Free",
-    imageUrl: "/images/elta3lem.jpeg",
-    rating: 4.8,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade2",
-    semester: "sem2",
-  },
-  {
-    id: 3,
-    name: "مدخل الي علوم نفسية",
-    description: "حالة جيدة.",
-    price: "Free",
-    imageUrl: "/images/nafsia.jpeg",
-    rating: 4.2,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade1",
-    semester: "sem2",
-  },
-  {
-    id: 4,
-    name: "علم نفس النمو",
-    description: "  حالة جيدةالي حد ما",
-    price: "Free",
-    imageUrl: "/images/elm-nafs.jpeg",
-    rating: 4.6,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade2",
-    semester: "sem1",
-  },
-  {
-    id: 5,
-    name: " معالجة الصور و الرسومات",
-    description: "حالة جيدة.",
-    price: 50,
-    imageUrl: "/images/photos.jpeg",
-    rating: 4.7,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade2",
-    semester: "sem2",
-  },
-  {
-    id: 6,
-    name: "مقدمة البرمجة",
-    description: "حالة جيدة.",
-    price: 1800,
-    imageUrl: "/images/Programming.jpeg",
-    rating: 4.9,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade2",
-    semester: "sem1",
-  },
-  {
-    id: 7,
-    name: " لغات البرمجة المتقدمة",
-    description: "حالة جيدة.",
-    price: 750,
-    imageUrl: "/images/lang.jpeg",
-    rating: 4.4,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade1",
-    semester: "sem2",
-  },
-  {
-    id: 8,
-    name: "مقدمة في الشبكات",
-    description: "كتاب بحالة جيدة جدا.",
-    price: 20,
-    imageUrl: "/images/Shabakat.jpeg",
-    rating: 4.8,
-    category: "book",
-    type: "book",
-    department: "tech",
-    grade: "grade2",
-    semester: "sem1",
-  },
+  { id: 1, name: "كتاب المتاحف و المعارض التعليمية", description: "حالة جيدة.", price: "Free", imageUrl: "/images/mta7f.jpeg", rating: 4.5, category: "book", type: "book", department: "tech", grade: "grade1", semester: "sem1" },
+  { id: 2, name: "محاضرات في التعليم الإلكتروني", description: "حالة جيدة.", price: "Free", imageUrl: "/images/elta3lem.jpeg", rating: 4.8, category: "book", type: "book", department: "tech", grade: "grade2", semester: "sem2" },
+  { id: 3, name: "مدخل الي علوم نفسية", description: "حالة جيدة.", price: "Free", imageUrl: "/images/nafsia.jpeg", rating: 4.2, category: "book", type: "book", department: "tech", grade: "grade1", semester: "sem2" },
+  { id: 4, name: "علم نفس النمو", description: "حالة جيدة الي حد ما", price: "Free", imageUrl: "/images/elm-nafs.jpeg", rating: 4.6, category: "book", type: "book", department: "tech", grade: "grade2", semester: "sem1" },
+  { id: 5, name: "معالجة الصور و الرسومات", description: "حالة جيدة.", price: 50, imageUrl: "/images/photos.jpeg", rating: 4.7, category: "book", type: "book", department: "tech", grade: "grade2", semester: "sem2" },
+  { id: 6, name: "مقدمة البرمجة", description: "حالة جيدة.", price: 1800, imageUrl: "/images/Programming.jpeg", rating: 4.9, category: "book", type: "book", department: "tech", grade: "grade2", semester: "sem1" },
+  { id: 7, name: "لغات البرمجة المتقدمة", description: "حالة جيدة.", price: 750, imageUrl: "/images/lang.jpeg", rating: 4.4, category: "book", type: "book", department: "tech", grade: "grade1", semester: "sem2" },
+  { id: 8, name: "مقدمة في الشبكات", description: "كتاب بحالة جيدة جدا.", price: 20, imageUrl: "/images/Shabakat.jpeg", rating: 4.8, category: "book", type: "book", department: "tech", grade: "grade2", semester: "sem1" },
 ]
 
 const departments = [
+  { value: "all", labelKey: "allDepts" },
   { value: "tech", labelKey: "deptTech" },
   { value: "art", labelKey: "deptArt" },
   { value: "media", labelKey: "deptMedia" },
@@ -145,6 +53,7 @@ const departments = [
 ]
 
 const grades = [
+  { value: "all", labelKey: "allYears" },
   { value: "grade1", labelKey: "grade1" },
   { value: "grade2", labelKey: "grade2" },
   { value: "grade3", labelKey: "grade3" },
@@ -152,284 +61,471 @@ const grades = [
 ]
 
 const semesters = [
+  { value: "all", labelKey: "allSemesters" },
   { value: "sem1", labelKey: "sem1" },
   { value: "sem2", labelKey: "sem2" },
 ]
 
+const itemTypes = [
+  { value: "all", labelKey: "allTypes" },
+  { value: "book", labelKey: "typeBook" },
+  { value: "item", labelKey: "typeItem" },
+]
+
+// Condition badge colors
+const conditionColor = {
+  good: { bg: "#e8f5e9", color: "#2e7d32", label: "Good" },
+  fair: { bg: "#fff8e1", color: "#f57f17", label: "Fair" },
+  new: { bg: "#e3f2fd", color: "#1565c0", label: "New" },
+}
+
+const semesterShort = { sem1: "S1", sem2: "S2" }
+
+function getCondition(rating) {
+  if (rating >= 4.7) return "new"
+  if (rating >= 4.3) return "good"
+  return "fair"
+}
+
+// Individual Book Card styled like the reference image
+const BookCard = ({ item, onFavoriteToggle, isFavorited, onClick, t }) => {
+  const cond = getCondition(item.rating)
+  const condStyle = conditionColor[cond]
+  const isFree = item.price === "Free" || item.price === 0
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        cursor: "pointer",
+        bgcolor: "#fff",
+        borderRadius: "12px",
+        overflow: "hidden",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+        display: "flex",
+        flexDirection: "column",
+        transition: "transform 0.22s ease, box-shadow 0.22s ease",
+        height: "100%",
+        "&:hover": {
+          transform: "translateY(-6px)",
+          boxShadow: "0 8px 28px rgba(65,171,93,0.18)",
+        },
+      }}
+    >
+      {/* Book Cover */}
+      <Box sx={{ position: "relative", width: "100%", pt: "130%", bgcolor: "#f4f4f4" }}>
+        <Box
+          component="img"
+          src={item.imageUrl}
+          alt={item.name}
+          sx={{
+            position: "absolute",
+            top: 0, left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+          onError={(e) => { e.target.src = "/placeholder.svg" }}
+        />
+
+        {/* Condition Badge */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 10, left: 10,
+            bgcolor: condStyle.bg,
+            color: condStyle.color,
+            fontSize: "0.65rem",
+            fontWeight: 700,
+            px: 1,
+            py: 0.3,
+            borderRadius: "6px",
+            letterSpacing: 0.5,
+            textTransform: "uppercase",
+          }}
+        >
+          {condStyle.label}
+        </Box>
+
+        {/* Favorite Button */}
+        <IconButton
+          size="small"
+          onClick={(e) => { e.stopPropagation(); onFavoriteToggle(item.id) }}
+          sx={{
+            position: "absolute",
+            top: 6, right: 6,
+            bgcolor: "rgba(255,255,255,0.9)",
+            "&:hover": { bgcolor: "#fff" },
+            width: 30, height: 30,
+          }}
+        >
+          {isFavorited
+            ? <FavoriteIcon sx={{ fontSize: 16, color: "#e53935" }} />
+            : <FavoriteBorderIcon sx={{ fontSize: 16, color: "#aaa" }} />
+          }
+        </IconButton>
+      </Box>
+
+      {/* Card Content */}
+      <Box sx={{ p: 1.5, display: "flex", flexDirection: "column", flexGrow: 1 }}>
+        {/* Course code chip */}
+        <Chip
+          label={
+            item.department?.toUpperCase() +
+            " · " +
+            item.grade?.replace("grade", "Y") +
+            " · " +
+            (semesterShort[item.semester] || item.semester || "")
+          }
+          size="small"
+          sx={{
+            alignSelf: "flex-start",
+            mb: 0.7,
+            fontSize: "0.6rem",
+            height: 20,
+            bgcolor: "#f0faf2",
+            color: "#41AB5D",
+            fontWeight: 700,
+            letterSpacing: 0.3,
+          }}
+        />
+
+        {/* Title */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 700,
+            fontSize: "0.82rem",
+            lineHeight: 1.35,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            mb: 0.5,
+            flexGrow: 1,
+            color: "#1a1a2e",
+          }}
+        >
+          {item.name}
+        </Typography>
+
+        {/* Delivery method */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}>
+          {item.isUserItem
+            ? <LocalShippingOutlinedIcon sx={{ fontSize: 13, color: "#888" }} />
+            : <StorefrontOutlinedIcon sx={{ fontSize: 13, color: "#888" }} />
+          }
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.65rem" }}>
+            {item.isUserItem ? "Delivery" : "Campus Pickup"}
+          </Typography>
+        </Box>
+
+        {/* Price row */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: "auto" }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              fontSize: "1rem",
+              color: isFree ? "#41AB5D" : "#1a1a2e",
+            }}
+          >
+            {isFree ? (t("free") || "Free") : `${item.price} EGP`}
+          </Typography>
+
+          <Button
+            size="small"
+            variant="text"
+            onClick={(e) => { e.stopPropagation(); onClick() }}
+            sx={{
+              fontSize: "0.65rem",
+              color: "#41AB5D",
+              fontWeight: 700,
+              p: 0,
+              minWidth: "auto",
+              "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+            }}
+          >
+            {t("message") || "Message"}
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
 const MarketplacePage = () => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
+
   const [searchQuery, setSearchQuery] = useState("")
   const [department, setDepartment] = useState("all")
   const [grade, setGrade] = useState("all")
   const [semester, setSemester] = useState("all")
   const [itemType, setItemType] = useState("all")
   const [allItems, setAllItems] = useState([])
-  const navigate = useNavigate()
+  const [favorites, setFavorites] = useState({})
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Fetch from API instead of localStorage
-        const { data } = await api.get('/products');
-        
-        const formattedUserItems = data.data.map(item => ({
+        const { data } = await api.get("/products")
+        const formatted = data.data.map((item) => ({
           id: item.id,
           name: item.title,
           description: item.description,
           price: item.isFree ? "Free" : `${item.price}`,
           imageUrl: item.images[0] || "/placeholder.svg",
-          rating: 5.0, // Default rating for new items
+          rating: 5.0,
           category: item.category.toLowerCase(),
-          type: item.category.toLowerCase() === 'book' ? 'book' : 'item',
-          department: "tech", // Defaulting filter values since backend doesn't store them strictly
+          type: item.category.toLowerCase() === "book" ? "book" : "item",
+          department: "tech",
           grade: "grade1",
           semester: "sem1",
-          isUserItem: true
-        }));
-
-        setAllItems([...formattedUserItems, ...staticItems]);
-      } catch (error) {
-        console.error("Failed to load marketplace items:", error);
-        setAllItems(staticItems); // Fallback to static items
+          isUserItem: true,
+        }))
+        setAllItems([...formatted, ...staticItems])
+      } catch {
+        setAllItems(staticItems)
       }
-    };
-
-    fetchProducts();
+    }
+    fetchProducts()
   }, [])
 
-  // Helper to get translated labels
-  const getDeptLabel = (val) => {
-    const dept = departments.find(d => d.value === val)
-    return dept ? t(dept.labelKey) : val
-  }
-
-  const getGradeLabel = (val) => {
-    const g = grades.find(g => g.value === val)
-    return g ? t(g.labelKey) : val
-  }
-
-  const getSemLabel = (val) => {
-    const s = semesters.find(s => s.value === val)
-    return s ? t(s.labelKey) : val
-  }
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1) }, [searchQuery, department, grade, semester, itemType])
 
   const filteredItems = allItems.filter((item) => {
-    const searchMatch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Check filters
+    const q = searchQuery.toLowerCase()
+    const searchMatch = item.name.toLowerCase().includes(q) || item.description.toLowerCase().includes(q)
     const departmentMatch = department === "all" || item.department === department
     const gradeMatch = grade === "all" || item.grade === grade
     const semesterMatch = semester === "all" || item.semester === semester
     const typeMatch = itemType === "all" || item.type === itemType
-
     return searchMatch && departmentMatch && gradeMatch && semesterMatch && typeMatch
   })
 
-  const handleItemClick = (itemId) => {
-    navigate(`/item/${itemId}`)
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE)
+  const paginatedItems = filteredItems.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+
+  const toggleFavorite = (id) => setFavorites((prev) => ({ ...prev, [id]: !prev[id] }))
+
+  const filterSelectSx = {
+    bgcolor: "#fff",
+    borderRadius: "10px",
+    fontSize: "0.82rem",
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#e0e0e0" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#41AB5D" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#41AB5D" },
+    minWidth: 130,
   }
 
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", pb: 8 }}>
+    <Box sx={{ bgcolor: "#f8faf8", minHeight: "100vh", pb: 8 }}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <AnimatedSection>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              justifyContent: "space-between",
-              alignItems: { xs: "stretch", md: "flex-start" },
-              mb: 4,
-              gap: 2,
-            }}
-          >
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-              {t("marketplace")}
-            </Typography>
 
-            {/* Right Side Container (Search + Filter) */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, width: { xs: "100%", md: "auto" } }}>
-
-              {/* Top Row: Search and Button */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Box sx={{ position: "relative", flexGrow: 1, minWidth: "250px" }}>
-                  <TextField
-                    placeholder={t("searchPlaceholder")}
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Box>
-                <Button
-                  component={RouterLink}
-                  to="/list-item"
-                  variant="contained"
-                  color="primary"
-                  startIcon={<AddIcon />}
-                  sx={{ whiteSpace: "nowrap", fontWeight: 600 }}
-                >
-                  {t("listYourItem")}
-                </Button>
-              </Box>
-
+          {/* ── Header ── */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3, flexWrap: "wrap", gap: 2 }}>
+            <Box>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 800, color: "#1a1a2e", mb: 0.3 }}>
+                {t("marketplace")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {filteredItems.length} {t("itemsFound") || "items found"}
+              </Typography>
+              {/* Note: add itemsFound key to translations.js as "items found" (en) and "عنصر بتطابق" (ar) */}
             </Box>
+
+            <Button
+              component={RouterLink}
+              to="/list-item"
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                bgcolor: "#41AB5D",
+                borderRadius: "10px",
+                fontWeight: 700,
+                px: 2.5,
+                py: 1,
+                boxShadow: "0 4px 14px rgba(65,171,93,0.35)",
+                "&:hover": { bgcolor: "#2d7a42" },
+              }}
+            >
+              {t("listYourItem")}
+            </Button>
           </Box>
 
+          {/* ── Search + Filters Bar ── */}
           <Box
             sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              justifyContent: "space-between",
-              alignItems: { xs: "stretch", md: "flex-start" },
+              bgcolor: "#fff",
+              borderRadius: "14px",
+              p: 2,
               mb: 4,
-              gap: 2,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1.5,
+              alignItems: "center",
             }}
           >
-            {/* Note: Removed Tabs based on earlier user preference to use filters instead */}
-
-            {/* Filters */}
-            <Box sx={{ alignSelf: { xs: "stretch", md: "flex-end" }, display: "flex", gap: 2, flexWrap: "wrap", width: "100%" }}>
-
-              {/* Type Filter */}
-              <FormControl size="small" sx={{ minWidth: 120, bgcolor: 'background.paper', flexGrow: 1 }}>
-                <InputLabel id="type-select-label">{t("filterType")}</InputLabel>
-                <Select
-                  labelId="type-select-label"
-                  value={itemType}
-                  label={t("filterType")}
-                  onChange={(e) => setItemType(e.target.value)}
-                >
-                  <MenuItem value="all"><em>{t("allTypes")}</em></MenuItem>
-                  <MenuItem value="book">📚 {t("typeBook")}</MenuItem>
-                  <MenuItem value="item">🛠️ {t("typeItem")}</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* Department Filter */}
-              <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'background.paper', flexGrow: 1 }}>
-                <InputLabel id="department-select-label">{t("filterDepartment")}</InputLabel>
-                <Select
-                  labelId="department-select-label"
-                  value={department}
-                  label={t("filterDepartment")}
-                  onChange={(e) => setDepartment(e.target.value)}
-                >
-                  <MenuItem value="all"><em>{t("allDepts")}</em></MenuItem>
-                  {departments.map((dept) => (
-                    <MenuItem key={dept.value} value={dept.value}>{t(dept.labelKey)}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Grade Filter */}
-              <FormControl size="small" sx={{ minWidth: 120, bgcolor: 'background.paper', flexGrow: 1 }}>
-                <InputLabel id="grade-select-label">{t("filterYear")}</InputLabel>
-                <Select
-                  labelId="grade-select-label"
-                  value={grade}
-                  label={t("filterYear")}
-                  onChange={(e) => setGrade(e.target.value)}
-                >
-                  <MenuItem value="all"><em>{t("allYears")}</em></MenuItem>
-                  {grades.map((g) => (
-                    <MenuItem key={g.value} value={g.value}>{t(g.labelKey)}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Semester Filter */}
-              <FormControl size="small" sx={{ minWidth: 120, bgcolor: 'background.paper', flexGrow: 1 }}>
-                <InputLabel id="semester-select-label">{t("filterSemester")}</InputLabel>
-                <Select
-                  labelId="semester-select-label"
-                  value={semester}
-                  label={t("filterSemester")}
-                  onChange={(e) => setSemester(e.target.value)}
-                >
-                  <MenuItem value="all"><em>{t("allSemesters")}</em></MenuItem>
-                  {semesters.map((s) => (
-                    <MenuItem key={s.value} value={s.value}>{t(s.labelKey)}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
+            {/* Filter icon label */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "#41AB5D" }}>
+              <FilterListIcon sx={{ fontSize: 20 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, color: "#41AB5D", whiteSpace: "nowrap" }}>
+                {t("filter") || "Filter"}
+              </Typography>
             </Box>
-          </Box>
 
+            {/* Search */}
+            <TextField
+              placeholder={t("searchPlaceholder")}
+              variant="outlined"
+              size="small"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "#aaa", fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                flex: "1 1 200px",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  fontSize: "0.82rem",
+                  "& fieldset": { borderColor: "#e0e0e0" },
+                  "&:hover fieldset": { borderColor: "#41AB5D" },
+                  "&.Mui-focused fieldset": { borderColor: "#41AB5D" },
+                },
+              }}
+            />
 
-          <Grid container spacing={3}>
-            {filteredItems.map((item) => (
-              <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-8px)",
-                      boxShadow: "0px 8px 25px rgba(0, 0, 0, 0.1)",
-                    },
-                  }}
-                >
-                  <CardActionArea onClick={() => handleItemClick(item.id)}>
-                    <CardMedia component="img" height="200" image={item.imageUrl} alt={item.name} />
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography gutterBottom variant="h6" component="div">
-                        {item.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1, whiteSpace: "pre-line", overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                        {item.description}
-                      </Typography>
+            {/* Type */}
+            <FormControl size="small">
+              <Select
+                value={itemType}
+                onChange={(e) => setItemType(e.target.value)}
+                displayEmpty
+                sx={filterSelectSx}
+              >
+                {itemTypes.map((t2) => (
+                  <MenuItem key={t2.value} value={t2.value}>{t(t2.labelKey)}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-                      {/* Show Details on card */}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 1 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {getDeptLabel(item.department)} • {getGradeLabel(item.grade)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {item.type === 'book' ? `📚 ${t("typeBook")}` : `🛠️ ${t("typeItem")}`} • {getSemLabel(item.semester)}
-                        </Typography>
-                      </Box>
+            {/* Department */}
+            <FormControl size="small">
+              <Select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                displayEmpty
+                sx={filterSelectSx}
+              >
+                {departments.map((d) => (
+                  <MenuItem key={d.value} value={d.value}>{t(d.labelKey)}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-                      <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
-                        {item.price === 'Free' ? (t("free") || "Free") : `${item.price} EGP`}
-                      </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                        <Rating name="read-only" value={item.rating} precision={0.1} readOnly size="small" />
-                        <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                          ({item.rating})
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
-            {filteredItems.length === 0 && (
-              <Grid item xs={12}>
-                <Typography variant="h6" align="center" color="text.secondary" sx={{ py: 4 }}>
-                  {t("noItemsFound")}
-                </Typography>
-              </Grid>
+            {/* Grade */}
+            <FormControl size="small">
+              <Select
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+                displayEmpty
+                sx={filterSelectSx}
+              >
+                {grades.map((g) => (
+                  <MenuItem key={g.value} value={g.value}>{t(g.labelKey)}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Semester */}
+            <FormControl size="small">
+              <Select
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                displayEmpty
+                sx={filterSelectSx}
+              >
+                {semesters.map((s) => (
+                  <MenuItem key={s.value} value={s.value}>{t(s.labelKey)}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Active filter chips */}
+            {department !== "all" && (
+              <Chip label={t(departments.find(d => d.value === department)?.labelKey)} onDelete={() => setDepartment("all")} size="small" sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontWeight: 600 }} />
             )}
-          </Grid>
+            {grade !== "all" && (
+              <Chip label={t(grades.find(g => g.value === grade)?.labelKey)} onDelete={() => setGrade("all")} size="small" sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontWeight: 600 }} />
+            )}
+            {semester !== "all" && (
+              <Chip label={t(semesters.find(s => s.value === semester)?.labelKey)} onDelete={() => setSemester("all")} size="small" sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontWeight: 600 }} />
+            )}
+            {itemType !== "all" && (
+              <Chip label={t(itemTypes.find(x => x.value === itemType)?.labelKey)} onDelete={() => setItemType("all")} size="small" sx={{ bgcolor: "#e8f5e9", color: "#2e7d32", fontWeight: 600 }} />
+            )}
+          </Box>
+
+          {/* ── Grid ── */}
+          {paginatedItems.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 10 }}>
+              <Typography variant="h6" color="text.secondary">{t("noItemsFound")}</Typography>
+            </Box>
+          ) : (
+            <Grid container spacing={2.5}>
+              {paginatedItems.map((item) => (
+                <Grid item key={item.id} xs={6} sm={4} md={3}>
+                  <BookCard
+                    item={item}
+                    t={t}
+                    isFavorited={!!favorites[item.id]}
+                    onFavoriteToggle={toggleFavorite}
+                    onClick={() => navigate(`/item/${item.id}`)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* ── Pagination ── */}
+          {totalPages > 1 && (
+            <Stack alignItems="center" sx={{ mt: 5 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, v) => { setPage(v); window.scrollTo({ top: 0, behavior: "smooth" }) }}
+                color="primary"
+                shape="rounded"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    borderRadius: "8px",
+                    fontWeight: 600,
+                  },
+                  "& .Mui-selected": {
+                    bgcolor: "#41AB5D !important",
+                    color: "#fff",
+                  },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                {t("page") || "Page"} {page} {t("of") || "of"} {totalPages}
+              </Typography>
+            </Stack>
+          )}
+
         </AnimatedSection>
       </Container>
     </Box>
   )
 }
-
 
 export default MarketplacePage
