@@ -87,6 +87,21 @@ function getCondition(rating) {
   return "fair"
 }
 
+// Parse API descriptions that embed "Grade: N Semester: N Department: ..." metadata
+function parseDescription(raw) {
+  if (!raw) return { text: "", grade: "grade1", semester: "sem1", dept: "tech" }
+  const match = raw.match(/^([\s\S]*?)\s*Grade:\s*(\d+)[\s\S]*?Semester:\s*(\d+)[\s\S]*?Department:\s*([\s\S]+)$/i)
+  if (match) {
+    return {
+      text: match[1].trim(),
+      grade: `grade${match[2]}`,
+      semester: `sem${match[3]}`,
+      dept: match[4].trim(),
+    }
+  }
+  return { text: raw.trim(), grade: "grade1", semester: "sem1", dept: "tech" }
+}
+
 // Individual Book Card styled like the reference image
 const BookCard = ({ item, onFavoriteToggle, isFavorited, onClick, t }) => {
   const cond = getCondition(item.rating)
@@ -277,20 +292,23 @@ const MarketplacePage = () => {
     const fetchProducts = async () => {
       try {
         const { data } = await api.get("/products")
-        const formatted = data.data.map((item) => ({
-          id: item.id,
-          name: item.title,
-          description: item.description,
-          price: item.isFree ? "Free" : `${item.price}`,
-          imageUrl: item.images[0] || "/placeholder.svg",
-          rating: 5.0,
-          category: item.category.toLowerCase(),
-          type: item.category.toLowerCase() === "book" ? "book" : "item",
-          department: "tech",
-          grade: "grade1",
-          semester: "sem1",
-          isUserItem: true,
-        }))
+        const formatted = data.data.map((item) => {
+          const parsed = parseDescription(item.description)
+          return {
+            id: item.id,
+            name: item.title,
+            description: parsed.text,
+            price: item.isFree ? "Free" : `${item.price}`,
+            imageUrl: item.images[0] || "/placeholder.svg",
+            rating: 5.0,
+            category: item.category.toLowerCase(),
+            type: item.category.toLowerCase() === "book" ? "book" : "item",
+            department: parsed.dept,
+            grade: parsed.grade,
+            semester: parsed.semester,
+            isUserItem: true,
+          }
+        })
         setAllItems([...formatted, ...staticItems])
       } catch {
         setAllItems(staticItems)
