@@ -195,30 +195,37 @@ const BookCard = ({ item, onFavoriteToggle, isFavorited, onClick, t }) => {
           variant="body2"
           sx={{
             fontWeight: 700,
-            fontSize: "0.82rem",
+            fontSize: "1rem",
             lineHeight: 1.35,
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             mb: 0.5,
-            flexGrow: 1,
             color: "#1a1a2e",
           }}
         >
           {item.name}
         </Typography>
 
-        {/* Delivery method */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}>
-          {item.isUserItem
-            ? <LocalShippingOutlinedIcon sx={{ fontSize: 13, color: "#888" }} />
-            : <StorefrontOutlinedIcon sx={{ fontSize: 13, color: "#888" }} />
-          }
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.65rem" }}>
-            {item.isUserItem ? "Delivery" : "Campus Pickup"}
+        {/* Description */}
+        {item.description && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              fontSize: "0.75rem",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              mb: 1,
+              lineHeight: 1.4,
+            }}
+          >
+            {item.description}
           </Typography>
-        </Box>
+        )}
 
         {/* Price row */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: "auto" }}>
