@@ -73,7 +73,17 @@ export const AuthProvider = ({ children }) => {
       }
       throw new Error('Failed to get session after login');
     } catch (error) {
-      throw error;
+      // If it's already a friendly error (e.g. from the url check above), re-throw as-is
+      if (error.message === 'Invalid email or password' || error.message === 'Failed to get session after login') {
+        throw error;
+      }
+      // For 401 or any network/server error during login, show a friendly message
+      const status = error?.response?.status;
+      if (status === 401 || status === 403 || status === 400) {
+        throw new Error('Invalid email or password. Please try again.');
+      }
+      // Generic fallback for unexpected errors
+      throw new Error('Invalid email or password. Please try again.');
     }
   };
 
