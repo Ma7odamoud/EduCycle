@@ -128,21 +128,24 @@ const ListItemPage = () => {
             headers: { "Content-Type": "multipart/form-data" }
           });
         } catch (uploadErr) {
-          // Check if the server returned 401 (not authenticated)
-          if (uploadErr.response?.status === 401) {
-            setSubmitError("Your session has expired. Please log in again.");
+          if (uploadErr?.response?.status === 401) {
+            setSubmitError("Session expired. Please log out and log back in, then try again.");
+          } else if (uploadErr?.response?.status === 500) {
+            setSubmitError("The image upload service is currently unavailable. Please try again in a moment.");
           } else {
-            const uploadErrMsg = uploadErr.response?.data?.error || "Failed to upload images. Please try again.";
+            const uploadErrMsg = uploadErr?.response?.data?.error || "Failed to upload images. Please check your connection and try again.";
             setSubmitError(uploadErrMsg);
           }
-          return; // outer finally will call setIsSubmitting(false)
+          setIsSubmitting(false);
+          return;
         }
 
-        // Validate that we got back real URLs (not an HTML page or empty response)
-        const urls = uploadRes.data?.urls;
+        // Validate that we got back real URLs
+        const urls = uploadRes?.data?.urls;
         if (!Array.isArray(urls) || urls.length === 0 || urls.some(u => !u || !u.startsWith('http'))) {
-          setSubmitError("Image upload failed: server returned no valid URLs. Please try again.");
-          return; // outer finally will call setIsSubmitting(false)
+          setSubmitError("Image upload failed — the server did not return valid image URLs. Please try again.");
+          setIsSubmitting(false);
+          return;
         }
         uploadedImageUrls = urls;
       }
@@ -158,20 +161,20 @@ const ListItemPage = () => {
       };
 
       await api.post("/products", payload);
-      navigate("/marketplace")
+      navigate("/marketplace");
     } catch (error) {
       console.error("Failed to create product:", error);
-      // Check for 401 auth error
-      if (error.response?.status === 401) {
-        setSubmitError("Your session has expired. Please log in again.");
-      } else {
-        const msg = error.response?.data?.error
-          || error.response?.data?.details?.[Object.keys(error.response?.data?.details || {})[0]]?.[0]
-          || "Failed to create listing. Please try again.";
-        setSubmitError(msg);
+      let msg = "An unexpected error occurred. Please try again.";
+      if (error?.response?.status === 401) {
+        msg = "Session expired. Please log out and log back in, then try again.";
+      } else if (error?.response?.status === 400) {
+        msg = error?.response?.data?.error || "Some form fields are invalid. Please check your input.";
+      } else if (error?.response?.data?.error) {
+        msg = error.response.data.error;
       }
+      setSubmitError(msg);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
