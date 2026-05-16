@@ -233,6 +233,18 @@ const ProfilePage = () => {
     }
   }
 
+  // ─── Delete a marketplace listing ────────────────────────────────────────────
+  const handleDeleteListing = async (id) => {
+    try {
+      await api.delete(`/products/${id}`)
+      setMyListings(prev => prev.filter(item => item.id !== id))
+      setSuccessMessage("Listing deleted successfully.")
+      setTimeout(() => setSuccessMessage(""), 3000)
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to delete listing. Please try again.")
+    }
+  }
+
   const handleRedeemPoints = () => navigate("/redeem-points")
 
   if (profileLoading) {
@@ -463,7 +475,7 @@ const ProfilePage = () => {
                               }
                             />
                             <ListItemSecondaryAction>
-                              <IconButton edge="end" aria-label="delete"><DeleteIcon /></IconButton>
+                              <IconButton edge="end" aria-label="delete" color="error" onClick={() => handleDeleteListing(item.id)}><DeleteIcon /></IconButton>
                             </ListItemSecondaryAction>
                           </ListItem>
                         ))}
