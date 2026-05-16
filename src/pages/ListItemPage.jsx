@@ -22,6 +22,7 @@ import {
   Checkbox,
   Alert,
   CircularProgress,
+  Snackbar,
 } from "@mui/material"
 import CloudUploadIcon from "@mui/icons-material/CloudUpload"
 import DeleteIcon from "@mui/icons-material/Delete"
@@ -31,7 +32,78 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import { api } from "../lib/api"
 
+const MAX_IMAGE_SIZE_MB = 8
+const MAX_IMAGE_COUNT = 4
+
 const departments = ["تكنولوجيا التعليم", "فنية", "اعلام", "موسيقي", "اقتصاد"]
+
+// ── Helper: turn any API/network error into a friendly message ────────────────
+function getFriendlyError(error, context = "general") {
+  const status = error?.response?.status
+  const serverMsg = error?.response?.data?.error
+
+  if (!error?.response) {
+    // No response at all → network / CORS issue
+    return {
+      severity: "error",
+      title: "Connection problem",
+      message: "Could not reach the server. Check your internet connection and try again.",
+    }
+  }
+
+  if (status === 401) {
+    return {
+      severity: "warning",
+      title: "Session expired",
+      message: "Your login session has expired. Please log out and log back in, then try again.",
+    }
+  }
+
+  if (status === 413) {
+    return {
+      severity: "error",
+      title: "Photo too large",
+      message: `One or more photos exceed the ${MAX_IMAGE_SIZE_MB} MB limit. Please compress or resize them and try again.`,
+    }
+  }
+
+  if (status === 500) {
+    if (context === "upload") {
+      return {
+        severity: "error",
+        title: "Upload service unavailable",
+        message: "The image upload service is temporarily down. Please wait a moment and try again.",
+      }
+    }
+    return {
+      severity: "error",
+      title: "Server error",
+      message: "Something went wrong on our end. Please try again in a few seconds.",
+    }
+  }
+
+  if (status === 400 && serverMsg) {
+    return {
+      severity: "error",
+      title: "Invalid data",
+      message: serverMsg,
+    }
+  }
+
+  if (serverMsg) {
+    return {
+      severity: "error",
+      title: "Error",
+      message: serverMsg,
+    }
+  }
+
+  return {
+    severity: "error",
+    title: "Unexpected error",
+    message: "Something went wrong. Please try again.",
+  }
+}
 
 const ListItemPage = () => {
   const navigate = useNavigate()
@@ -59,19 +131,49 @@ const ListItemPage = () => {
 
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState(null)
 
+  // ── Toast state ──────────────────────────────────────────────────────────────
+  const [toast, setToast] = useState({ open: false, severity: "error", title: "", message: "" })
+  const showToast = ({ severity, title, message }) =>
+    setToast({ open: true, severity, title, message })
+  const closeToast = (_, reason) => {
+    if (reason === "clickaway") return
+    setToast(prev => ({ ...prev, open: false }))
+  }
+
+  // ── Field change ─────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    })
+    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value })
     if (errors[name]) setErrors({ ...errors, [name]: null })
   }
 
+  // ── Image upload ─────────────────────────────────────────────────────────────
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
+
+    // Check total count
+    const totalAfter = formData.images.length + files.length
+    if (totalAfter > MAX_IMAGE_COUNT) {
+      showToast({
+        severity: "warning",
+        title: "Too many photos",
+        message: `You can upload up to ${MAX_IMAGE_COUNT} photos. You already have ${formData.images.length}.`,
+      })
+      return
+    }
+
+    // Check individual file sizes
+    const oversized = files.find(f => f.size > MAX_IMAGE_SIZE_MB * 1024 * 1024)
+    if (oversized) {
+      showToast({
+        severity: "error",
+        title: "Photo too large",
+        message: `"${oversized.name}" is ${(oversized.size / 1024 / 1024).toFixed(1)} MB. Maximum allowed size is ${MAX_IMAGE_SIZE_MB} MB per photo. Please compress or resize it.`,
+      })
+      return
+    }
+
     const newImages = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -87,6 +189,7 @@ const ListItemPage = () => {
     setFormData({ ...formData, images: newImages })
   }
 
+  // ── Validation ───────────────────────────────────────────────────────────────
   const validateForm = () => {
     const newErrors = {}
     if (!formData.type) newErrors.type = t("errSelectType")
@@ -98,59 +201,73 @@ const ListItemPage = () => {
     if (!formData.isFree && (!formData.price || formData.price <= 0)) {
       newErrors.price = t("errPrice")
     }
-    if (formData.images.length === 0) newErrors.images = t("errPhotos") || "Please upload at least one photo"
+    if (formData.images.length === 0) {
+      newErrors.images = t("errPhotos") || "Please upload at least one photo"
+    }
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+
+    if (Object.keys(newErrors).length > 0) {
+      showToast({
+        severity: "warning",
+        title: "Missing required fields",
+        message: "Please fill in all highlighted fields before posting.",
+      })
+      return false
+    }
+    return true
   }
 
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitError(null)
+
     if (!user) {
-      setSubmitError("You must be logged in to list an item.")
+      showToast({
+        severity: "warning",
+        title: "Not logged in",
+        message: "You must be logged in to list an item. Please log in and try again.",
+      })
       return
     }
+
     if (!validateForm()) return
 
     setIsSubmitting(true)
     try {
-      let uploadedImageUrls = [];
+      let uploadedImageUrls = []
 
+      // ── Step 1: upload photos ──────────────────────────────────────────────
       if (formData.images.length > 0) {
-        const uploadData = new FormData();
+        const uploadData = new FormData()
         formData.images.forEach(imgObj => {
-          if (imgObj.file) uploadData.append("files", imgObj.file);
-        });
+          if (imgObj.file) uploadData.append("files", imgObj.file)
+        })
 
-        let uploadRes;
+        let uploadRes
         try {
           uploadRes = await api.post("/upload", uploadData, {
-            headers: { "Content-Type": "multipart/form-data" }
-          });
+            headers: { "Content-Type": "multipart/form-data" },
+          })
         } catch (uploadErr) {
-          if (uploadErr?.response?.status === 401) {
-            setSubmitError("Session expired. Please log out and log back in, then try again.");
-          } else if (uploadErr?.response?.status === 500) {
-            setSubmitError("The image upload service is currently unavailable. Please try again in a moment.");
-          } else {
-            const uploadErrMsg = uploadErr?.response?.data?.error || "Failed to upload images. Please check your connection and try again.";
-            setSubmitError(uploadErrMsg);
-          }
-          setIsSubmitting(false);
-          return;
+          showToast(getFriendlyError(uploadErr, "upload"))
+          setIsSubmitting(false)
+          return
         }
 
-        // Validate that we got back real URLs
-        const urls = uploadRes?.data?.urls;
-        if (!Array.isArray(urls) || urls.length === 0 || urls.some(u => !u || !u.startsWith('http'))) {
-          setSubmitError("Image upload failed — the server did not return valid image URLs. Please try again.");
-          setIsSubmitting(false);
-          return;
+        const urls = uploadRes?.data?.urls
+        if (!Array.isArray(urls) || urls.length === 0 || urls.some(u => !u?.startsWith("http"))) {
+          showToast({
+            severity: "error",
+            title: "Upload failed",
+            message: "Photos were not saved correctly. Please remove them and try uploading again.",
+          })
+          setIsSubmitting(false)
+          return
         }
-        uploadedImageUrls = urls;
+        uploadedImageUrls = urls
       }
 
-      // phoneNumber is automatically pulled from the user's profile on the backend
+      // ── Step 2: create the listing ─────────────────────────────────────────
       const payload = {
         title: formData.title,
         description: `${formData.description}\n\nGrade: ${formData.grade}\nSemester: ${formData.semester}\nDepartment: ${formData.department}`,
@@ -158,28 +275,51 @@ const ListItemPage = () => {
         isFree: formData.isFree,
         category: formData.type === "book" ? "BOOK" : "OTHER",
         images: uploadedImageUrls,
-      };
-
-      await api.post("/products", payload);
-      navigate("/marketplace");
-    } catch (error) {
-      console.error("Failed to create product:", error);
-      let msg = "An unexpected error occurred. Please try again.";
-      if (error?.response?.status === 401) {
-        msg = "Session expired. Please log out and log back in, then try again.";
-      } else if (error?.response?.status === 400) {
-        msg = error?.response?.data?.error || "Some form fields are invalid. Please check your input.";
-      } else if (error?.response?.data?.error) {
-        msg = error.response.data.error;
       }
-      setSubmitError(msg);
+
+      await api.post("/products", payload)
+      navigate("/marketplace")
+
+    } catch (error) {
+      console.error("Failed to create product:", error)
+      showToast(getFriendlyError(error, "general"))
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
+      {/* ── Floating error/warning toast ── */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={7000}
+        onClose={closeToast}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ top: { xs: 16, sm: 24 } }}
+      >
+        <Alert
+          severity={toast.severity}
+          variant="filled"
+          onClose={closeToast}
+          sx={{
+            width: "100%",
+            maxWidth: 520,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+            borderRadius: 2,
+            fontSize: "0.95rem",
+          }}
+        >
+          {toast.title && (
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.3 }}>
+              {toast.title}
+            </Typography>
+          )}
+          {toast.message}
+        </Alert>
+      </Snackbar>
+
       <Button component={RouterLink} to="/marketplace" startIcon={<ArrowBackIcon />} sx={{ mb: 3 }}>
         {t("backToMarket")}
       </Button>
@@ -189,7 +329,7 @@ const ListItemPage = () => {
           {t("listYourResourceTitle")}
         </Typography>
 
-        {/* Show seller's phone number info */}
+        {/* Phone number info */}
         {user?.phoneNumber && (
           <Alert severity="info" sx={{ mb: 3 }}>
             {t("contactPhone") || "Buyers will contact you via"}: <strong>{user.phoneNumber}</strong>
@@ -200,7 +340,7 @@ const ListItemPage = () => {
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={3}>
 
-            {/* Type Selection */}
+            {/* Type */}
             <Grid item xs={12}>
               <FormControl fullWidth required error={!!errors.type}>
                 <InputLabel>{t("whatListing")}</InputLabel>
@@ -213,7 +353,7 @@ const ListItemPage = () => {
               </FormControl>
             </Grid>
 
-            {/* Name */}
+            {/* Title */}
             <Grid item xs={12}>
               <TextField
                 required fullWidth
@@ -284,15 +424,37 @@ const ListItemPage = () => {
 
             {/* Photos */}
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>{t("photos")}</Typography>
-              <Box sx={{ border: "2px dashed", borderColor: errors.images ? "error.main" : "divider", p: 3, textAlign: "center", borderRadius: 1 }}>
-                <input accept="image/*" id="image-upload" type="file" multiple onChange={handleImageUpload} style={{ display: "none" }} />
+              <Typography variant="subtitle1" gutterBottom>
+                {t("photos")}
+                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  (max {MAX_IMAGE_COUNT} photos · {MAX_IMAGE_SIZE_MB} MB each)
+                </Typography>
+              </Typography>
+              <Box
+                sx={{
+                  border: "2px dashed",
+                  borderColor: errors.images ? "error.main" : "divider",
+                  p: 3, textAlign: "center", borderRadius: 1,
+                }}
+              >
+                <input
+                  accept="image/*"
+                  id="image-upload"
+                  type="file"
+                  multiple
+                  onChange={handleImageUpload}
+                  style={{ display: "none" }}
+                />
                 <label htmlFor="image-upload">
                   <Button variant="outlined" component="span" startIcon={<CloudUploadIcon />} sx={{ mb: 1 }}>
                     {t("uploadPhotos")}
                   </Button>
                 </label>
-                {errors.images && <Typography variant="caption" display="block" color="error">{errors.images}</Typography>}
+                {errors.images && (
+                  <Typography variant="caption" display="block" color="error">
+                    {errors.images}
+                  </Typography>
+                )}
               </Box>
 
               <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -315,11 +477,6 @@ const ListItemPage = () => {
 
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
-              {submitError && (
-                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSubmitError(null)}>
-                  {submitError}
-                </Alert>
-              )}
               <Button
                 type="submit"
                 variant="contained"
@@ -332,6 +489,7 @@ const ListItemPage = () => {
                 {isSubmitting ? t("posting") || "Posting…" : t("postNow")}
               </Button>
             </Grid>
+
           </Grid>
         </Box>
       </Paper>

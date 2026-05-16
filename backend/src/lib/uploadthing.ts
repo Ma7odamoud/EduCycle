@@ -8,7 +8,7 @@ const f = createUploadthing();
 export const ourFileRouter: FileRouter = {
   // ── Product Images ─────────────────────────────────────────────────────────
   productImageUploader: f({
-    image: { maxFileSize: "4MB", maxFileCount: 4 },
+    image: { maxFileSize: "8MB", maxFileCount: 4 },
   })
     .middleware(async ({ req }) => {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
